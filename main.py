@@ -4,5 +4,5 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-	return {"message": "Hello from CD!"}
+	return {"message": "It's work!!!"}
 
