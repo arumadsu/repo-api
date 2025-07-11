@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_and_deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - name: Checkout repository
@@ -25,14 +25,9 @@ jobs:
         push: true
         tags: arumadzu/my-api:latest
 
-    - name: Deploy on local server via SSH
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.SERVER_IP }}
-        username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          docker pull arumadzu/my-api:latest
-          docker stop api_container || true
-          docker rm api_container || true
-          docker run -d --name api_container -p 80:80 arumadzu/my-api:latest
+    - name: Deploy Docker container
+      run: |
+        docker pull arumadzu/my-api:latest
+        docker stop api_container || true
+        docker rm api_container || true
+        docker run -d --name api_container -p 80:80 arumadzu/my-api:latest
