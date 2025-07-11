@@ -30,4 +30,5 @@ jobs:
         docker pull arumadzu/my-api:latest
         docker stop api_container || true
         docker rm api_container || true
-        docker run -d --name api_container -p 80:80 arumadzu/my-api:latest
+        docker run -d --name api_container -p 8000:8000 arumadzu/my-api:latest
+
