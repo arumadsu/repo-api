@@ -1,4 +1,4 @@
-name: Deploy to Self-Hosted Runner
+name: Build and Push to DockerHub
 
 on:
   push:
@@ -6,13 +6,25 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: self-hosted
+
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run deploy script
-        run: |
-          ./deploy.sh
+      - name: Log in to DockerHub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/fastapi-app:latest .
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/fastapi-app:latest
+
+      - name: Pull new image and restart container
+        run: |
+          cd ~/deployment
+          docker-compose down
+          docker pull ${{ secrets.DOCKER_USERNAME }}/fastapi-app:latest
+          docker-compose up -d
