@@ -1,12 +1,20 @@
-# Исключаем виртуальное окружение
+# Исключаем виртуальное окружение и кеш
 venv/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Логи
 *.log
+
+# Файлы окружения
 .env
 .env.*
+
+# Git
 .git
 .gitignore
-.DS_store
+
+# MacOS
+.DS_Store
