@@ -22,9 +22,9 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/fastapi-app:latest
 
-      - name: Pull new image and restart container
+      - name: Pull and restart on server
         run: |
           cd ~/deployment
-          docker-compose down
+          docker compose down
           docker pull ${{ secrets.DOCKER_USERNAME }}/fastapi-app:latest
-          docker-compose up -d
+          docker compose up -d
