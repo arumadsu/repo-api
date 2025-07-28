@@ -22,10 +22,6 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/fastapi-app:latest
 
-      - name: Kill containers on port 8000
-        run: |
-          docker ps -q --filter "publish=8000" | xargs -r docker stop
-
       - name: Pull and restart on server
         run: |
           cd ~/deployment
