@@ -13,20 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Ensure tools jq and vault CLI
-        run: |
+      #- name: Ensure tools jq and vault CLI
+        #run: |
           # Установки могут потребоваться только если на раннере нет утилит.
           # Для Ubuntu-подобных систем:
-          if ! command -v jq >/dev/null 2>&1; then
-            sudo apt-get update -y
-            sudo apt-get install -y jq
-          fi
-          if ! command -v vault >/dev/null 2>&1; then
-            curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-            sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-            sudo apt-get update -y
-            sudo apt-get install -y vault
-          fi
+          #if ! command -v jq >/dev/null 2>&1; then
+            #sudo apt-get update -y
+            #sudo apt-get install -y jq
+          #fi
+          #if ! command -v vault >/dev/null 2>&1; then
+            #curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+            #sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+            #sudo apt-get update -y
+            #sudo apt-get install -y vault
+          #fi
 
       - name: Authenticate with Vault (AppRole) and fetch DockerHub creds
         id: vault_login
