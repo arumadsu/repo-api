@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline (OIDC)
 
 on:
   push:
@@ -8,65 +8,27 @@ on:
 jobs:
   build-and-deploy:
     runs-on: self-hosted
+    permissions:
+      id-token: write   # 🔑 нужно для GitHub OIDC
+      contents: read
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      #- name: Ensure tools jq and vault CLI
-        #run: |
-          # Установки могут потребоваться только если на раннере нет утилит.
-          # Для Ubuntu-подобных систем:
-          #if ! command -v jq >/dev/null 2>&1; then
-            #sudo apt-get update -y
-            #sudo apt-get install -y jq
-          #fi
-          #if ! command -v vault >/dev/null 2>&1; then
-            #curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-            #sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-            #sudo apt-get update -y
-            #sudo apt-get install -y vault
-          #fi
+      # 🔑 Новый шаг — логинимся в Vault через OIDC
+      - name: Authenticate with Vault via OIDC
+        id: vault
+        uses: hashicorp/vault-action@v1
+        with:
+          method: jwt
+          url: "http://127.0.0.1:8200"       # если у тебя Vault локально на self-hosted runner
+          role: "github-ci"                  # имя роли, которую ты создал в Vault
+          secrets: |
+            secret/data/dockerhub#username | DOCKER_USERNAME ;
+            secret/data/dockerhub#password | DOCKER_PASSWORD
 
-      - name: Authenticate with Vault (AppRole) and fetch DockerHub creds
-        id: vault_login
-        run: |
-          # 1) адрес Vault (локальный)
-          export VAULT_ADDR="http://127.0.0.1:8200"
-
-          # 2) логинимся по AppRole (role_id + secret_id из GitHub Secrets)
-          LOGIN_JSON=$(vault write -format=json auth/approle/login role_id="${{ secrets.ROLE_ID }}" secret_id="${{ secrets.SECRET_ID }}")
-          VAULT_TOKEN=$(echo "$LOGIN_JSON" | jq -r '.auth.client_token')
-
-          if [ -z "$VAULT_TOKEN" ] || [ "$VAULT_TOKEN" = "null" ]; then
-            echo "Failed to get Vault token" >&2
-            echo "$LOGIN_JSON" >&2
-            exit 1
-          fi
-
-          # экспортим токен для следующих команд
-          export VAULT_TOKEN="$VAULT_TOKEN"
-
-          # 3) читаем секрет из KV v2 (secret/dockerhub)
-          # vault kv get -format=json возвращает JSON вида { "data": { "data": {...} , "metadata": {...} } }
-          KV_JSON=$(vault kv get -format=json secret/dockerhub)
-
-          # парсим username/password
-          DOCKER_USERNAME=$(echo "$KV_JSON" | jq -r '.data.data.username // .data.username // empty')
-          DOCKER_PASSWORD=$(echo "$KV_JSON" | jq -r '.data.data.password // .data.password // empty')
-
-          if [ -z "$DOCKER_USERNAME" ] || [ -z "$DOCKER_PASSWORD" ]; then
-            echo "Failed to parse dockerhub credentials from Vault. Dumping KV_JSON for debug:" >&2
-            echo "$KV_JSON" >&2
-            exit 1
-          fi
-
-          # записываем в GITHUB_ENV, чтобы использовать их в следующих шагах
-          echo "DOCKER_USERNAME=$DOCKER_USERNAME" >> $GITHUB_ENV
-          echo "DOCKER_PASSWORD=$DOCKER_PASSWORD" >> $GITHUB_ENV
-
-          # чистим переменные на случай
-          unset VAULT_TOKEN
+      # 🔐 Теперь креды лежат в env (DOCKER_USERNAME, DOCKER_PASSWORD)
 
       - name: Log in to DockerHub
         env:
