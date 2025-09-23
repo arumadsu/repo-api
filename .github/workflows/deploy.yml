@@ -19,14 +19,15 @@ jobs:
       # 🔑 Новый шаг — логинимся в Vault через OIDC
       - name: Authenticate with Vault via OIDC
         id: vault
-        uses: hashicorp/vault-action@v1
+        uses: hashicorp/vault-action@v2
         with:
           method: jwt
-          url: "http://127.0.0.1:8200"       # если у тебя Vault локально на self-hosted runner
-          role: "github-ci"                  # имя роли, которую ты создал в Vault
+          url: "http://127.0.0.1:8200"
+          role: "github-ci"
           secrets: |
             secret/data/dockerhub#username | DOCKER_USERNAME ;
             secret/data/dockerhub#password | DOCKER_PASSWORD
+
 
       # 🔐 Теперь креды лежат в env (DOCKER_USERNAME, DOCKER_PASSWORD)
 
