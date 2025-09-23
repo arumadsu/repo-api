@@ -25,8 +25,8 @@ jobs:
           url: "http://127.0.0.1:8200"
           role: "github-ci"
           secrets: |
-            secret/data/dockerhub username=DOCKER_USERNAME
-            secret/data/dockerhub password=DOCKER_PASSWORD
+            secret/data/dockerhub username | DOCKER_USERNAME ;
+            secret/data/dockerhub password | DOCKER_PASSWORD
       
 
 
